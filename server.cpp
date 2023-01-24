@@ -8,6 +8,20 @@
 #include <sys/types.h>
 #include <unistd.h>
 using namespace std;
+string convertToString(char *a, int size)
+{
+    int i;
+    string s = "";
+    for (i = 0; i < size; i++)
+    {
+        s = s + a[i];
+    }
+    return s;
+}
+
+bool login(string directory, string file, string username, string password)
+{
+}
 
 int main(int argc, char **argv)
 {
@@ -49,6 +63,8 @@ int main(int argc, char **argv)
 
     socketfd = socket(AF_INET, SOCK_STREAM, 0);
 
+    bool loggedIn = false;
+
     if (socketfd < 0)
     {
         cout << "Error";
@@ -70,6 +86,8 @@ int main(int argc, char **argv)
         return 1;
     }
 
+    cout << "File server listening on localhost port " << portNumber << endl;
+
     if (listen(socketfd, 10) < 0)
     {
         cout << "Couldn't listen";
@@ -88,11 +106,16 @@ int main(int argc, char **argv)
     while (1)
     {
         auto bytesRead = read(connection, buffer, 700);
-        cout
-            << "The message was: " << buffer;
+        string readString = convertToString(buffer, sizeof(buffer) / sizeof(char));
+        std::string command = readString.substr(0, readString.find(' '));
+        cout << "First one: " << command << endl;
+        if (strcmp("USER", command) == 0)
+        {
+            loggedIn = login(directory, passwordFile, readString.substr(1, readString.find(' ')), readString.substr(2, readString.find(' ')));
+        }
         string response = "Response!";
         send(connection, response.c_str(), response.size(), 0);
     }
-
+    close(socketfd);
     return 0;
 }
